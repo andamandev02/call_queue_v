@@ -27,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isPlaying = false;
   TextEditingController textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   Widget build(BuildContext context) {
@@ -207,15 +206,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // เล่นเสียง
   void _playSound(String value) async {
+    final player = AudioPlayer();
     final trimmedString = value.toString();
     final numberString = trimmedString.replaceAll(RegExp('^0+'), '');
-    await _audioPlayer.play(AssetSource('sounds/pnumber.MP3'));
+    String audioPath = "sounds/pnumber.mp3";
+    await player.play(AssetSource(audioPath));
     await Future.delayed(const Duration(milliseconds: 1200));
     for (int i = 0; i < numberString.length; i++) {
-      await _audioPlayer.play(AssetSource('sounds/${numberString[i]}.MP3'));
+      await player.play(AssetSource('sounds/${numberString[i]}.mp3'));
       if (i + 1 < numberString.length &&
           numberString[i] == numberString[i + 1]) {
-        await _audioPlayer.onPlayerStateChanged.firstWhere(
+        await player.onPlayerStateChanged.firstWhere(
           (state) => state == PlayerState.completed,
         );
       } else {

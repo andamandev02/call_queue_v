@@ -1,45 +1,8 @@
 import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: const HomeScreen(),
-    );
-  }
-}
-
-// class PlayAudio extends StatefulWidget {
-//   const PlayAudio({super.key});
-
-//   @override
-//   State<PlayAudio> createState() => _PlayAudioState();
-// }
-
-// class _PlayAudioState extends State<PlayAudio> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return ElevatedButton(
-//         onPressed: () {
-//           playsound();
-//         },
-//         child: const Text("Plesss"));
-//   }
-
-//   Future<void> playsound() async {
-//     final player = AudioPlayer();
-//     String audioPath = "sounds/pnumber.mp3";
-//     await player.play(AssetSource(audioPath));
-//   }
-// }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -64,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isPlaying = false;
   TextEditingController textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   Widget build(BuildContext context) {
@@ -78,65 +42,56 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.black,
         body: Column(
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: texts.asMap().entries.map((entry) {
-                int index = entry.key;
-                String text = entry.value.substring(0, 3);
-                bool isFirstText = index == 0;
-
-                return Container(
-                  child: Text(
-                    text,
-                    style: TextStyle(
-                      color: isFirstText
-                          ? _isGreen
-                              ? Colors.white // Green color
-                              : Color.fromARGB(255, 255, 0, 0) // Red color
-                          : isFirstText
-                              ? Colors.white // White color
-                              : Colors.white, // Red color
-                      fontSize: screenSize.height * 0.174, // ขนาดตัวอักษร
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: screenSize.height * 0.08, // letterSpacing
-                      fontFamily: 'DIGITAL',
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
             Expanded(
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: Opacity(
-                      opacity: 1,
-                      child: Container(
-                        color: Colors.black,
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              TextField(
-                                controller: textController,
-                                style: TextStyle(color: Colors.white),
-                                onChanged: (value) {
-                                  checkvalue(value);
-                                },
-                                onSubmitted: (newText) {
-                                  updateTexts(newText);
-                                },
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                      RegExp(r'[\d+.*/]')),
-                                ],
-                                autofocus: true,
-                                focusNode: _focusNode,
-                              ),
-                            ],
-                          ),
-                        ),
+              child: Container(
+                color: Colors.black,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: texts.asMap().entries.map((entry) {
+                    int index = entry.key;
+                    String text = entry.value.substring(0, 3);
+                    bool isFirstText = index == 0;
+
+                    return Text(
+                      text,
+                      style: TextStyle(
+                        color: isFirstText
+                            ? _isGreen
+                                ? Colors.white // Green color
+                                : Color.fromARGB(255, 255, 0, 0) // Red color
+                            : isFirstText
+                                ? Colors.white // White color
+                                : Colors.white, // Red color
+                        fontSize: screenSize.height * 0.15,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: screenSize.height * 0.07,
+                        fontFamily: 'DIGITAL',
                       ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            Container(
+              color: Colors.black,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: textController,
+                      style: TextStyle(color: Colors.white),
+                      onChanged: (value) {
+                        checkvalue(value);
+                      },
+                      onSubmitted: (newText) {
+                        updateTexts(newText);
+                      },
+                      inputFormatters: [
+                        // LengthLimitingTextInputFormatter(3),
+                        FilteringTextInputFormatter.allow(RegExp(r'[\d+.*/]')),
+                      ],
+                      autofocus: true,
+                      focusNode: _focusNode,
                     ),
                   ),
                 ],
@@ -252,17 +207,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // เล่นเสียง
   void _playSound(String value) async {
-    final player = AudioPlayer();
     final trimmedString = value.toString();
     final numberString = trimmedString.replaceAll(RegExp('^0+'), '');
-    String audioPath = "sounds/pnumber.mp3";
-    await player.play(AssetSource(audioPath));
+    await _audioPlayer.play(AssetSource('sounds/pnumber.MP3'));
     await Future.delayed(const Duration(milliseconds: 1200));
     for (int i = 0; i < numberString.length; i++) {
-      await player.play(AssetSource('sounds/${numberString[i]}.mp3'));
+      await _audioPlayer.play(AssetSource('sounds/${numberString[i]}.MP3'));
       if (i + 1 < numberString.length &&
           numberString[i] == numberString[i + 1]) {
-        await player.onPlayerStateChanged.firstWhere(
+        await _audioPlayer.onPlayerStateChanged.firstWhere(
           (state) => state == PlayerState.completed,
         );
       } else {
